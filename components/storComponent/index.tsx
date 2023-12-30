@@ -12,6 +12,7 @@ import {
 } from "react-native-responsive-screen";
 import colors from "../../utillity/colors";
 import { Entypo, Ionicons } from "@expo/vector-icons";
+import { font } from "../../utillity/font";
 
 interface props {
 	displayOutOfStockButn?: boolean;
@@ -23,18 +24,21 @@ interface props {
 	onPress?: () => void;
 	rating: string; //this should be required
 	status: string; //this should be required
+	vendorType: string;
+	isAvailable: boolean;
 }
 
 const StoreComponent = ({
 	displayOutOfStockButn,
 	name,
-	type,
+	vendorType,
 	price,
 	amount,
 	rating,
 	status,
 	image,
 	onPress,
+	isAvailable,
 }: props) => {
 	return (
 		<TouchableOpacity onPress={onPress} style={styles.container}>
@@ -44,26 +48,28 @@ const StoreComponent = ({
 					<TextComponent type="text12">{name}</TextComponent>
 					<View
 						style={{
-							backgroundColor: colors.yellow1,
-							padding: "2.5%",
-							borderRadius: 10,
+							backgroundColor: colors.tint,
+							padding: "3%",
+							borderRadius: 8,
 						}}
 					>
-						<TextComponent sx={colors.grey3} type="text12">
-							{type}
+						<TextComponent sx={colors.grey1} type="text12">
+							{vendorType}
 						</TextComponent>
 					</View>
 				</View>
-				<View style={styles.row}>
-					<TextComponent type="text12">{price}</TextComponent>
-				</View>
-				<View style={styles.row}>
-					{amount && (
+				{price && (
+					<View style={styles.row}>
+						<TextComponent type="text12">{price}</TextComponent>
+					</View>
+				)}
+				{amount && (
+					<View style={styles.row}>
 						<TextComponent type="text12">
 							For 100 people: <TextComponent type="text20">£1000</TextComponent>
 						</TextComponent>
-					)}
-				</View>
+					</View>
+				)}
 				<View style={styles.row}>
 					<TextComponent type="text12">
 						42{" "}
@@ -74,9 +80,14 @@ const StoreComponent = ({
 						/>
 						(129)
 					</TextComponent>
-					<TextComponent sx={colors.green} type="text12">
-						{status}
-					</TextComponent>
+					{isAvailable === true && (
+						<TextComponent
+							sx={{ color: colors.green, fontFamily: font.DMSans_500Medium }}
+							type="text12"
+						>
+							Open
+						</TextComponent>
+					)}
 				</View>
 			</View>
 		</TouchableOpacity>

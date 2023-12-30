@@ -7,6 +7,7 @@ import {
 } from "react-native-responsive-screen";
 import colors from "../../utillity/colors";
 import { Entypo, Ionicons } from "@expo/vector-icons";
+import { font } from "../../utillity/font";
 interface props {
 	children?: any;
 	foodName: string;
@@ -21,42 +22,49 @@ const FoodComponent = ({
 	foodImage,
 	details,
 }: props) => {
-
 	return (
 		<View style={styles.container}>
 			<Image style={styles.image} source={{ uri: foodImage }} />
 			<View style={styles.details}>
-				<TextComponent type="text12">{foodName}</TextComponent>
-				<TextComponent
-					sx={{ marginVertical: "1%", color: colors.grey3 }}
-					type="text12"
-				>
+				<View style={{ flexDirection: "row" }}>
+					<TextComponent type="text16" sx={{ color: colors.black1 }}>
+						{foodName}
+					</TextComponent>
+					<Ionicons
+						name="chevron-forward"
+						size={hp("2%")}
+						color={colors.black}
+					/>
+				</View>
+
+				<TextComponent sx={{ color: colors.grey }} type="text14">
 					{details}
 				</TextComponent>
-				<TextComponent type="text20">{price}</TextComponent>
+				<TextComponent type="text14" sx={{ fontFamily: font.DMSans_700Bold }}>
+					{price}
+				</TextComponent>
 				{children}
 			</View>
-			<Ionicons name="chevron-forward" size={hp("2%")} color={colors.black} />
 		</View>
 	);
 };
 
 const styles = StyleSheet.create({
 	container: {
-		width: "90%",
+		width: "100%",
+		height: hp("12%"),
 		alignSelf: "center",
 		flexDirection: "row",
-		borderBottomWidth: 2,
-		paddingVertical: "2.5%",
-		marginVertical: "2.5%",
+		borderBottomWidth: 1,
+		paddingBottom: "2.5%",
 		justifyContent: "space-around",
-		borderBottomColor: colors.grey,
+		borderBottomColor: colors.grey3,
 	},
 
 	image: {
-		width: hp("15%"),
-		height: hp("13%"),
-		borderRadius: 15,
+		width: "30%",
+		height: "100%",
+		borderRadius: 8,
 		marginRight: "3%",
 		alignSelf: "center",
 		overflow: "hidden",

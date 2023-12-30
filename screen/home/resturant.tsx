@@ -21,8 +21,21 @@ import TextComponent from "../../components/reusables/Text.component";
 import { Entypo, Ionicons } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import FoodComponent from "../../components/reusables/FoodComponent";
+import { OrderFoodModal } from "../../components/Modal/OrderModal";
 
-const RestaurantScreen = ({ navigation }: any) => {
+const RestaurantScreen = ({ navigation, route }: any) => {
+	const [details, setDetails] = useState(false);
+
+	const displayModal = () => {
+		setDetails(!details);
+		console.log("call");
+	};
+
+	useEffect(() => {
+		console.log(route?.params);
+	}, []);
+
+  
 	return (
 		<Container>
 			<View style={styles.Header}>
@@ -82,68 +95,33 @@ const RestaurantScreen = ({ navigation }: any) => {
 						>
 							<TextComponent type="text12">All</TextComponent>
 						</CustButton>
-						<CustButton
-							sx={{
-								width: wp("25%"),
-								borderRadius: 0,
-								justifyContent: "center",
-								alignItems: "center",
-								paddingHorizontal: "1.5%",
-							}}
-							color="transparent"
-							type="default"
-						>
-							<TextComponent type="text12">Breakfast</TextComponent>
-						</CustButton>
-						<CustButton
-							sx={{
-								width: wp("25%"),
-								borderRadius: 0,
-								justifyContent: "center",
-								alignItems: "center",
-								paddingHorizontal: "1.5%",
-							}}
-							color="transparent"
-							type="default"
-						>
-							<TextComponent type="text12">Lunch</TextComponent>
-						</CustButton>
-						<CustButton
-							sx={{
-								width: wp("25%"),
-								borderRadius: 0,
-								justifyContent: "center",
-								alignItems: "center",
-								paddingHorizontal: "1.5%",
-							}}
-							color="transparent"
-							type="default"
-						>
-							<TextComponent type="text12">Dinner</TextComponent>
-						</CustButton>
-						<CustButton
-							sx={{
-								width: wp("25%"),
-								borderRadius: 0,
-								justifyContent: "center",
-								alignItems: "center",
-								paddingHorizontal: "1.5%",
-							}}
-							color="transparent"
-							type="default"
-						>
-							<TextComponent type="text12">Snack</TextComponent>
-						</CustButton>
+						{[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i, index) => (
+							<CustButton
+								onPress={displayModal}
+								key={index}
+								sx={{
+									width: wp("25%"),
+									borderRadius: 0,
+									justifyContent: "center",
+									alignItems: "center",
+									paddingHorizontal: "1.5%",
+								}}
+								color="transparent"
+								type="default"
+							>
+								<TextComponent type="text12">Breakfast</TextComponent>
+							</CustButton>
+						))}
 					</ScrollView>
 				</View>
 
 				<FlatList
 					style={styles.flatlist}
 					data={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]}
+					showsVerticalScrollIndicator={false}
+					contentContainerStyle={{ gap: 20 }}
 					renderItem={() => (
-						<TouchableOpacity
-						//  onPress={openCartModal}
-						>
+						<TouchableOpacity onPress={displayModal}>
 							<FoodComponent
 								foodName="White rice and vegetable salad"
 								details="Grilled chicken salad with eggs, tomato, cabbage, sweet peas"
@@ -153,13 +131,10 @@ const RestaurantScreen = ({ navigation }: any) => {
 						</TouchableOpacity>
 					)}
 				/>
-				{/* {displayDetals && (
-					<OrderFoodModal
-						addToCartFunc={addToCart}
-						closeFunc={() => setDisplayDetails(false)}
-					/>
+				{details && (
+					<OrderFoodModal closeFunc={displayModal} display={details} />
 				)}
-				{displayCheckoutTab && (
+				{/*{displayCheckoutTab && (
 					<CheckoutTab onPress={() => setDisplayCheckoutModal(true)} />
 				)}
 				{displayCheckoutModal && (
@@ -202,6 +177,8 @@ const CheckoutTab = ({ onPress }: { onPress: () => void }) => {
 const styles = StyleSheet.create({
 	flatlist: {
 		width: "100%",
+		marginTop: 10,
+		marginBottom: 100,
 	},
 
 	Header: {

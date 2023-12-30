@@ -20,6 +20,8 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import StoreComponent from "../../components/storComponent";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useQuery } from "@tanstack/react-query";
+import { getVendor } from "../../utillity/api/query";
 
 interface props {
 	navigation: StackNavigationProp<any, any>;
@@ -34,6 +36,20 @@ const HomeScreen = ({ navigation }: props) => {
 	} = useForm<any>({
 		// resolver: yupResolver(loginSchems),
 	});
+
+	const { data, isFetching, error } = useQuery({
+		queryKey: ["get-vendor"],
+		queryFn: getVendor,
+	});
+
+	useEffect(() => {
+		if (data) {
+			console.log(data?.data.data);
+		} else if (error) {
+			console.log(error);
+		}
+		console.log(isFetching);
+	}, [data, isFetching, error]);
 
 	return (
 		<Container>
@@ -97,21 +113,19 @@ const HomeScreen = ({ navigation }: props) => {
 					style={{
 						width: "100%",
 						height: hp("65%"),
+						marginBottom: 40,
 					}}
 					showsVerticalScrollIndicator={false}
 					renderItem={({ item, index }) => (
 						<StoreComponent
-							onPress={() => navigation.navigate("restaurant")}
-							name="Mama Chops"
-							type="20-25min"
-							price="Prices from £20"
-							status="open"
-							rating="4.2"
-							image="https://www.denverpost.com/wp-content/uploads/2021/12/Native-Foods-jalapeno-popper-burger-scaled-1.jpeg?w=1079"
+							onPress={() => {
+								navigation.navigate("restaurant", item._id);
+							}}
+							{...item}
 						/>
 					)}
-					data={[1, 2, 3, 4, 5, 6]}
-					keyExtractor={(index) => index.toString()}
+					data={data?.data.data}
+					keyExtractor={(item) => item._id}
 				/>
 			</InnerWrapper>
 		</Container>
