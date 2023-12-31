@@ -14,26 +14,13 @@ export const getOrder = async (data: any): Promise<any> => {
 };
 
 export const getVendor = async (): Promise<any> => {
-  return await axios.get(`${Api}/user/vendor`)
+  return await axios.get(`${Api}/user/vendor?vendorType=restaurantVendor`)
 };
 
-export const getCategory = async (): Promise<any> => {
-  const token = await getCachedAuthData("user-token");
-  const vendorId = await getCachedAuthData("vendorData")
-  return await axios.get(`${Api}/menu?vendorId=${vendorId._id}`,
-    {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    })
+export const getCategory = async (data: any): Promise<any> => {
+  return await axios.get(`${Api}/menu?vendorId=${data?.queryKey[1]}`)
 };
 
 export const getItem = async (data: any): Promise<any> => {
-  const token = await getCachedAuthData('user-token')
-  return await axios.get(`${Api}/item?${data?.queryKey[1]}`,
-    {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    })
+  return await axios.get(`${Api}/user/item${data?.queryKey[1]}`)
 };

@@ -9,26 +9,21 @@ import colors from "../../utillity/colors";
 import { Entypo, Ionicons } from "@expo/vector-icons";
 import { font } from "../../utillity/font";
 interface props {
-	children?: any;
-	foodName: string;
-	foodImage: string;
+	name: string;
+	image: string;
+	description: string;
 	price: string;
-	details: string;
 }
-const FoodComponent = ({
-	children,
-	foodName,
-	price,
-	foodImage,
-	details,
-}: props) => {
+const FoodComponent = ({ name, image, description, price }: props) => {
+	console.log(name, image, description, price);
+
 	return (
 		<View style={styles.container}>
-			<Image style={styles.image} source={{ uri: foodImage }} />
+			<Image style={styles.image} source={{ uri: image }} />
 			<View style={styles.details}>
-				<View style={{ flexDirection: "row" }}>
+				<View style={{ flexDirection: "row", justifyContent: "space-between" }}>
 					<TextComponent type="text16" sx={{ color: colors.black1 }}>
-						{foodName}
+						{name}
 					</TextComponent>
 					<Ionicons
 						name="chevron-forward"
@@ -38,12 +33,12 @@ const FoodComponent = ({
 				</View>
 
 				<TextComponent sx={{ color: colors.grey }} type="text14">
-					{details}
+					{description}
 				</TextComponent>
 				<TextComponent type="text14" sx={{ fontFamily: font.DMSans_700Bold }}>
 					{price}
 				</TextComponent>
-				{children}
+				{/* {children} */}
 			</View>
 		</View>
 	);
@@ -53,7 +48,6 @@ const styles = StyleSheet.create({
 	container: {
 		width: "100%",
 		height: hp("12%"),
-		alignSelf: "center",
 		flexDirection: "row",
 		borderBottomWidth: 1,
 		paddingBottom: "2.5%",

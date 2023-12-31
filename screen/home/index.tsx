@@ -38,18 +38,9 @@ const HomeScreen = ({ navigation }: props) => {
 	});
 
 	const { data, isFetching, error } = useQuery({
-		queryKey: ["get-vendor"],
+		queryKey: ["get-item"],
 		queryFn: getVendor,
 	});
-
-	useEffect(() => {
-		if (data) {
-			console.log(data?.data.data);
-		} else if (error) {
-			console.log(error);
-		}
-		console.log(isFetching);
-	}, [data, isFetching, error]);
 
 	return (
 		<Container>
@@ -119,7 +110,10 @@ const HomeScreen = ({ navigation }: props) => {
 					renderItem={({ item, index }) => (
 						<StoreComponent
 							onPress={() => {
-								navigation.navigate("restaurant", item._id);
+								navigation.navigate("restaurant", {
+									id: item._id,
+									image: item.image,
+								});
 							}}
 							{...item}
 						/>
@@ -128,6 +122,7 @@ const HomeScreen = ({ navigation }: props) => {
 					keyExtractor={(item) => item._id}
 				/>
 			</InnerWrapper>
+			<LoadingComponent displayLoadingComponent={isFetching} />
 		</Container>
 	);
 };

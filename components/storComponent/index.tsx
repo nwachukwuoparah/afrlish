@@ -29,13 +29,10 @@ interface props {
 }
 
 const StoreComponent = ({
-	displayOutOfStockButn,
 	name,
 	vendorType,
 	price,
 	amount,
-	rating,
-	status,
 	image,
 	onPress,
 	isAvailable,

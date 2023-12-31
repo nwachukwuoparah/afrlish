@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, {
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import {
 	View,
 	Image,
@@ -15,15 +21,36 @@ import {
 import colors from "../../utillity/colors";
 import TextComponent from "../reusables/Text.component";
 import { font } from "../../utillity/font";
+import { getCachedAuthData } from "../../utillity/storage";
 
 interface props {
 	closeFunc: () => void;
 	display: boolean;
+	item: any;
+	dispatch: any;
+	cart: any;
 }
 
-export const OrderFoodModal = ({ closeFunc, display }: props) => {
-	const [itemCount, setitemCount] = useState<number>(1);
+export const OrderFoodModal = ({
+	closeFunc,
+	display,
+	item,
+	dispatch,
+	cart,
+}: props) => {
+	const [value, setValue] = useState<any>();
 
+	useEffect(() => {
+		(() => {
+			const newItem = cart.filter((i: any) => i.id === item._id);
+			console.log("value", newItem);
+			setValue(newItem[0]);
+		})();
+	}, [cart, display]);
+
+	useEffect(() => {
+		console.log(item);
+	}, [item]);
 	return (
 		<Modal
 			animationType="slide"
@@ -50,7 +77,7 @@ export const OrderFoodModal = ({ closeFunc, display }: props) => {
 							sx={{
 								seflAlign: "center",
 							}}
-							type="text20"
+							type="text16"
 						>
 							Add to your tray
 						</TextComponent>
@@ -61,22 +88,25 @@ export const OrderFoodModal = ({ closeFunc, display }: props) => {
 						<Image
 							style={styles.foodImg}
 							source={{
-								uri: "https://www.denverpost.com/wp-content/uploads/2021/12/Native-Foods-jalapeno-popper-burger-scaled-1.jpeg?w=1079",
+								uri: item?.image,
 							}}
 						/>
 						<View style={{ paddingHorizontal: "5%", width: "100%", gap: 15 }}>
 							<View style={{ gap: 5 }}>
-								<TextComponent type="text14" sx={{ color: colors.black1 }}>
-									White rice and vegetable salad
+								<TextComponent
+									type="text16"
+									sx={{ color: colors.black1, fontFamily: font.DMSans_700Bold }}
+								>
+									{item?.name}
 								</TextComponent>
 								<TextComponent sx={{ color: colors.grey }} type="text14">
-									Grilled chicken salad with eggs, tomato, cabbage, sweet peas
+									{item?.description}
 								</TextComponent>
 								<TextComponent
 									type="text14"
 									sx={{ fontFamily: font.DMSans_700Bold }}
 								>
-									£20 per portion
+									£ {item?.price} per portion
 								</TextComponent>
 							</View>
 
@@ -92,7 +122,7 @@ export const OrderFoodModal = ({ closeFunc, display }: props) => {
 											fontFamily: font.DMSans_500Medium,
 										}}
 									>
-										124k
+										{item?.calorie ? item?.calorie : "--"} g
 									</TextComponent>
 								</View>
 								<View style={styles.foodContentDetails}>
@@ -106,7 +136,7 @@ export const OrderFoodModal = ({ closeFunc, display }: props) => {
 											fontFamily: font.DMSans_500Medium,
 										}}
 									>
-										65g
+										{item?.carb ? item?.carb : "--"} g
 									</TextComponent>
 								</View>
 								<View style={styles.foodContentDetails}>
@@ -120,7 +150,7 @@ export const OrderFoodModal = ({ closeFunc, display }: props) => {
 											fontFamily: font.DMSans_500Medium,
 										}}
 									>
-										80g
+										{item?.fat ? item?.fat : "--"} g
 									</TextComponent>
 								</View>
 								<View
@@ -136,7 +166,7 @@ export const OrderFoodModal = ({ closeFunc, display }: props) => {
 											fontFamily: font.DMSans_500Medium,
 										}}
 									>
-										100g
+										{item?.protein ? item?.protein : "--"} g
 									</TextComponent>
 								</View>
 							</View>
@@ -150,29 +180,65 @@ export const OrderFoodModal = ({ closeFunc, display }: props) => {
 							>
 								<View style={styles.increamentButnWrapper}>
 									<TouchableOpacity
-										style={styles.increamentButn}
-										onPress={() =>
-											itemCount > 1 &&
-											setitemCount((prevCount) => prevCount - 1)
-										}
+										style={{
+											...styles.increamentButn,
+											opacity: cart.length === 0 ? 0.4 : 9,
+										}}
+										onPress={() => {
+											if (cart.length > 0) {
+												console.log("call");
+												dispatch({
+													type: "REDUCE_QUANTITY",
+													payload: {
+														id: item._id,
+													},
+												});
+											}
+										}}
 									>
 										<TextComponent type="text20">-</TextComponent>
 									</TouchableOpacity>
 
-									<TextComponent type="text20">{itemCount}</TextComponent>
+									<TextComponent type="text20">
+										{value?.quantity ? value?.quantity : 0}
+									</TextComponent>
 
 									<TouchableOpacity
-										style={styles.increamentButn}
-										onPress={() => setitemCount((prevCount) => prevCount + 1)}
+										style={{
+											...styles.increamentButn,
+											opacity: cart.length === 0 ? 0.4 : 9,
+										}}
+										onPress={() => {
+											if (cart.length !== 0) {
+												dispatch({
+													type: "ADD_TO_CART",
+													payload: {
+														id: item._id,
+														quantity: 1,
+														price: item.price,
+													},
+												});
+											}
+										}}
 									>
 										<TextComponent type="text20">+</TextComponent>
 									</TouchableOpacity>
 								</View>
 								<TouchableOpacity
-									// onPress={() => addToCartFunc(handleClosePress)}
+									onPress={() => {
+										closeFunc();
+										dispatch({
+											type: "ADD_TO_CART",
+											payload: {
+												id: item._id,
+												quantity: 1,
+												price: item.price,
+											},
+										});
+									}}
 									style={styles.addButn}
 								>
-									<TextComponent type="text20">Add £20</TextComponent>
+									<TextComponent type="text16">Add £20</TextComponent>
 								</TouchableOpacity>
 							</View>
 
@@ -210,7 +276,6 @@ const styles = StyleSheet.create({
 		shadowRadius: 14.84,
 		elevation: 5,
 		backgroundColor: "rgba(0, 0, 0, 0.3)",
-		alignSelf: "flex-end",
 	},
 
 	contentContainer: {
@@ -226,7 +291,8 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		width: "100%",
 		alignItems: "center",
-		padding: 5,
+		padding: 10,
+		paddingHorizontal: 15,
 		justifyContent: "space-between",
 	},
 
@@ -249,6 +315,7 @@ const styles = StyleSheet.create({
 	foodContentDetails: {
 		height: "100%",
 		justifyContent: "space-around",
+		alignItems: "center",
 		borderRightWidth: 1,
 		flex: 0.25,
 		borderColor: colors.grey,

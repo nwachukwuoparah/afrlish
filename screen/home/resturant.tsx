@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useReducer } from "react";
 import {
 	FlatList,
 	View,
@@ -22,27 +22,64 @@ import { Entypo, Ionicons } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import FoodComponent from "../../components/reusables/FoodComponent";
 import { OrderFoodModal } from "../../components/Modal/OrderModal";
+import { getCategory, getItem } from "../../utillity/api/query";
+import { useQuery } from "@tanstack/react-query";
+import LoadingComponent from "../../components/reusables/Loading.component";
+import { orderReducer } from "../../components/cartReducer";
+import {
+	cacheAuthData,
+	clearAuthData,
+	getCachedAuthData,
+} from "../../utillity/storage";
+import CheckoutModal from "../../components/Modal/CheckoutModal";
 
 const RestaurantScreen = ({ navigation, route }: any) => {
+	const [cart, dispatch] = useReducer(orderReducer, []);
 	const [details, setDetails] = useState(false);
-
+	const [checkOut, setCheckOut] = useState(false);
+	const [item, setItem] = useState();
+	const [category, setCategory] = useState(`?vendorId=${route?.params.id}`);
 	const displayModal = () => {
 		setDetails(!details);
-		console.log("call");
 	};
 
-	useEffect(() => {
-		console.log(route?.params);
-	}, []);
+  const displayCheckoutModal = () => {
+		setCheckOut(!checkOut);
+	};
+	const { data, isFetching, error } = useQuery({
+		queryKey: ["get-category", route?.params.id],
+		queryFn: getCategory,
+	});
 
-  
+	const { data: itemData, isFetching: itemFetching } = useQuery({
+		queryKey: ["get-item", category],
+		queryFn: getItem,
+		gcTime: 5 * 60 * 1000,
+	});
+
+	useEffect(() => {
+		cacheAuthData(JSON.stringify(cart), "cart");
+		// console.log(JSON.stringify(cart, null, 2));
+	}, [cart]);
+
+	useEffect(() => {
+		(async () => {
+			const data = await getCachedAuthData("cart");
+			if (data) {
+				console.log("log", data);
+			} else {
+				console.log("no");
+			}
+		})();
+	}, [cart]);
+
 	return (
 		<Container>
 			<View style={styles.Header}>
 				<ImageBackground
 					style={{ alignItems: "flex-start", flex: 1, height: "100%" }}
 					source={{
-						uri: "https://www.denverpost.com/wp-content/uploads/2021/12/Native-Foods-jalapeno-popper-burger-scaled-1.jpeg?w=1079",
+						uri: route?.params.image,
 					}}
 				>
 					<CustButton
@@ -53,13 +90,13 @@ const RestaurantScreen = ({ navigation, route }: any) => {
 					/>
 				</ImageBackground>
 			</View>
-			<InnerWrapper>
+			<InnerWrapper sx={{ height: "79%" }}>
 				<View>
 					<View style={styles.headerRow}>
 						<TextComponent type="text20">
-							The Marseilles{" "}
+							The Marseilles
 							<TextComponent type="text12">
-								42{" "}
+								42
 								<Ionicons
 									name="ios-star-sharp"
 									size={hp("2%")}
@@ -90,15 +127,22 @@ const RestaurantScreen = ({ navigation, route }: any) => {
 								alignItems: "center",
 								paddingHorizontal: "1.5%",
 							}}
-							color={colors.yellow}
+							onPress={() => setCategory(`?vendorId=${route?.params.id}`)}
+							color={
+								category === `?vendorId=${route?.params.id}`
+									? colors.yellow
+									: colors.white
+							}
 							type="default"
 						>
 							<TextComponent type="text12">All</TextComponent>
 						</CustButton>
-						{[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i, index) => (
+						{data?.data.data.map((i: any) => (
 							<CustButton
-								onPress={displayModal}
-								key={index}
+								onPress={() => {
+									setCategory(`?vendorId=${route?.params.id}&menuId=${i?._id}`);
+								}}
+								key={i._id}
 								sx={{
 									width: wp("25%"),
 									borderRadius: 0,
@@ -106,41 +150,57 @@ const RestaurantScreen = ({ navigation, route }: any) => {
 									alignItems: "center",
 									paddingHorizontal: "1.5%",
 								}}
-								color="transparent"
+								color={
+									category === `?vendorId=${route?.params.id}&menuId=${i?._id}`
+										? colors.yellow
+										: colors.white
+								}
 								type="default"
 							>
-								<TextComponent type="text12">Breakfast</TextComponent>
+								<TextComponent type="text12">{i?.title}</TextComponent>
 							</CustButton>
 						))}
 					</ScrollView>
 				</View>
-
 				<FlatList
 					style={styles.flatlist}
-					data={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]}
+					data={itemData?.data.data}
 					showsVerticalScrollIndicator={false}
 					contentContainerStyle={{ gap: 20 }}
-					renderItem={() => (
-						<TouchableOpacity onPress={displayModal}>
-							<FoodComponent
-								foodName="White rice and vegetable salad"
-								details="Grilled chicken salad with eggs, tomato, cabbage, sweet peas"
-								price={"£10"}
-								foodImage="https://www.denverpost.com/wp-content/uploads/2021/12/Native-Foods-jalapeno-popper-burger-scaled-1.jpeg?w=1079"
-							/>
+					renderItem={(item) => (
+						<TouchableOpacity
+							onPress={() => {
+								displayModal();
+								setItem(item?.item);
+							}}
+						>
+							<FoodComponent {...item?.item} />
 						</TouchableOpacity>
 					)}
+					keyExtractor={(item) => item._id}
 				/>
-				{details && (
-					<OrderFoodModal closeFunc={displayModal} display={details} />
-				)}
-				{/*{displayCheckoutTab && (
-					<CheckoutTab onPress={() => setDisplayCheckoutModal(true)} />
-				)}
-				{displayCheckoutModal && (
-					<CheckoutModal closeFunc={() => setDisplayCheckoutModal(false)} />
-				)} */}
+				<OrderFoodModal
+					closeFunc={displayModal}
+					display={details}
+					item={item}
+					dispatch={dispatch}
+					cart={cart}
+				/>
+				<CheckoutModal
+					closeFunc={displayCheckoutModal }
+					display={checkOut}
+					dispatch={dispatch}
+					cart={cart}
+				/>
 			</InnerWrapper>
+			{cart.length > 0 && (
+				<CheckoutTab
+					onPress={() => {
+						setCheckOut(!checkOut);
+					}}
+				/>
+			)}
+			<LoadingComponent displayLoadingComponent={isFetching || itemFetching} />
 		</Container>
 	);
 };
@@ -151,7 +211,7 @@ const CheckoutTab = ({ onPress }: { onPress: () => void }) => {
 			<CustButton
 				onPress={onPress}
 				sx={styles.checkoutButn}
-				color={colors.white}
+				color={colors.grey2}
 				type="rounded"
 			>
 				<FontAwesome
@@ -167,8 +227,12 @@ const CheckoutTab = ({ onPress }: { onPress: () => void }) => {
 					width: "100%",
 				}}
 			>
-				<TextComponent type="text20">Checkout your tray</TextComponent>
-				<TextComponent type="text20">£20</TextComponent>
+				<TextComponent type="text16" sx={{ color: colors.black1 }}>
+					Checkout your tray
+				</TextComponent>
+				<TextComponent type="text16" sx={{ color: colors.black1 }}>
+					£20
+				</TextComponent>
 			</View>
 		</View>
 	);
@@ -178,7 +242,7 @@ const styles = StyleSheet.create({
 	flatlist: {
 		width: "100%",
 		marginTop: 10,
-		marginBottom: 100,
+		marginBottom: 5,
 	},
 
 	Header: {
@@ -195,12 +259,11 @@ const styles = StyleSheet.create({
 
 	checkoutTab: {
 		width: wp("100%"),
-		backgroundColor: colors.yellow,
+		backgroundColor: colors.yellow1,
 		paddingHorizontal: "5%",
 		alignItems: "center",
 		justifyContent: "center",
-		height: hp("7%"),
-		top: hp("-10%"),
+		height: hp("10%"),
 	},
 
 	checkoutButn: {
